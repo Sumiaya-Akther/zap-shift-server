@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
+// const stripe = require('stripe')(process.env.PAYMENT_GATEWAY_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -32,7 +34,7 @@ async function run() {
         const parcelCollection = db.collection('parcels'); // collection
 
 
-        
+
         app.get('/parcels', async (req, res) => {
             const parcels = await parcelCollection.find().toArray();
             res.send(parcels);
@@ -40,7 +42,7 @@ async function run() {
 
 
 
-                // parcels api
+        // parcels api
         // GET: All parcels OR parcels by user (created_by), sorted by latest
         app.get('/parcels', async (req, res) => {
             try {
@@ -60,7 +62,26 @@ async function run() {
         });
 
 
-                // POST: Create a new parcel
+        // GET: Get a specific parcel by ID
+        app.get('/parcels/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+
+                const parcel = await parcelCollection.findOne({ _id: new ObjectId(id) });
+
+                if (!parcel) {
+                    return res.status(404).send({ message: 'Parcel not found' });
+                }
+
+                res.send(parcel);
+            } catch (error) {
+                console.error('Error fetching parcel:', error);
+                res.status(500).send({ message: 'Failed to fetch parcel' });
+            }
+        });
+
+
+        // POST: Create a new parcel
         app.post('/parcels', async (req, res) => {
             try {
                 const newParcel = req.body;
@@ -73,8 +94,8 @@ async function run() {
             }
         });
 
-
-                app.delete('/parcels/:id', async (req, res) => {
+        //delet my parcel api
+        app.delete('/parcels/:id', async (req, res) => {
             try {
                 const id = req.params.id;
 
@@ -87,6 +108,21 @@ async function run() {
             }
         });
 
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const amountInCents = req.body.amountInCents
+            try {
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amountInCents, // Amount in cents
+                    currency: 'usd',
+                    payment_method_types: ['card'],
+                });
+
+                res.json({ clientSecret: paymentIntent.client_secret });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
 
 
 
