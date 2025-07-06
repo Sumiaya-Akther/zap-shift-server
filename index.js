@@ -33,6 +33,7 @@ async function run() {
         const db = client.db('parcelDB'); // database name
         const parcelCollection = db.collection('parcels'); // collection
         const paymentsCollection = db.collection('payments');
+        const trackingCollection = db.collection('parcelTracking');
 
 
 
@@ -108,6 +109,33 @@ async function run() {
                 res.status(500).send({ message: 'Failed to delete parcel' });
             }
         });
+
+
+        // parcel traking api
+
+        app.get("/tracking/:tracking_id", async (req, res) => {
+            const tracking_id = req.params.tracking_id;
+            const logs = await trackingCollection.find({ tracking_id }).sort({ time: 1 }).toArray();
+            res.send(logs);
+        });
+
+
+        app.post("/tracking", async (req, res) => {
+            const { tracking_id, parcel_id, status, message, updated_by = '' } = req.body;
+
+            const log = {
+                tracking_id,
+                parcel_id: parcel_id ? new ObjectId(parcel_id) : undefined,
+                status,
+                message,
+                time: new Date(),
+                updated_by,
+            };
+
+            const result = await trackingCollection.insertOne(log);
+            res.send({ success: true, insertedId: result.insertedId });
+        });
+
 
 
         app.get('/payments', async (req, res) => {
