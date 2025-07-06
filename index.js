@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-// const stripe = require('stripe')(process.env.PAYMENT_GATEWAY_KEY);
+const stripe = require('stripe')(process.env.PAYMENT_GATWAY_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
