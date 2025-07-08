@@ -42,6 +42,7 @@ async function run() {
         const parcelCollection = db.collection('parcels'); // collection
         const paymentsCollection = db.collection('payments');
         const trackingCollection = db.collection('parcelTracking');
+        const ridersCollection = db.collection('riders');
 
 
 
@@ -156,6 +157,17 @@ async function run() {
                 res.status(500).send({ message: 'Failed to delete parcel' });
             }
         });
+
+
+        // riders--------->
+        app.post('/riders', async (req, res) => {
+            const rider = req.body;
+            const result = await ridersCollection.insertOne(rider);
+            res.send(result);
+        })
+
+
+        //riders----------------->
 
         // -------------------------------------------->
         // parcel traking api
